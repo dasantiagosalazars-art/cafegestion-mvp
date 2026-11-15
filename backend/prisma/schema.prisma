@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMINISTRADOR
+  PRODUCTOR
+  TRABAJADOR
+}
+
+enum TipoProducto {
+  CEREZA
+  PERGAMINO_HUMEDO
+  PERGAMINO_SECO
+}
+
+enum EstadoCosecha {
+  REGISTRADA
+  CONFIRMADA
+}
+
+model Finca {
+  id       String   @id @default(uuid())
+  nombre   String
+  creadaEn DateTime @default(now())
+
+  usuarios    Usuario[]
+  lotes       Lote[]
+  cosechas    Cosecha[]
+  inventarios Inventario[]
+  ventas      Venta[]
+}
+
+model Usuario {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  nombre       String
+  passwordHash String
+  rol          Rol      @default(PRODUCTOR)
+  activo       Boolean  @default(true)
+  creadoEn     DateTime @default(now())
+
+  fincaId String
+  finca   Finca  @relation(fields: [fincaId], references: [id])
+
+  ventas Venta[]
+}
+
+model Lote {
+  id                String   @id @default(uuid())
+  nombre            String
+  nombreNormalizado String
+  areaHa            Decimal  @db.Decimal(10, 2)
+  tipoCultivo       String
+  activo            Boolean  @default(true)
+  creadoEn          DateTime @default(now())
+
+  fincaId String
+  finca   Finca  @relation(fields: [fincaId], references: [id])
+
+  cosechas   Cosecha[]
+  ventaLotes VentaLote[]
+
+  @@unique([fincaId, nombreNormalizado])
+}
+
+model Cosecha {
+  id           String        @id @default(uuid())
+  fecha        DateTime
+  cantidadKg   Decimal       @db.Decimal(12, 2)
+  tipoProducto TipoProducto
+  estado       EstadoCosecha @default(REGISTRADA)
+  creadaEn     DateTime      @default(now())
+  confirmadaEn DateTime?
+
+  fincaId String
+  finca   Finca  @relation(fields: [fincaId], references: [id])
+  loteId  String
+  lote    Lote   @relation(fields: [loteId], references: [id])
+}
+
+model Inventario {
+  id            String       @id @default(uuid())
+  tipoProducto  TipoProducto
+  cantidadKg    Decimal      @default(0) @db.Decimal(12, 2)
+  actualizadoEn DateTime     @updatedAt
+
+  fincaId String
+  finca   Finca  @relation(fields: [fincaId], references: [id])
+
+  @@unique([fincaId, tipoProducto])
+}
+
+model Venta {
+  id                   String       @id @default(uuid())
+  comprador            String
+  tipoProducto         TipoProducto
+  cantidadKg           Decimal      @db.Decimal(12, 2)
+  valorTotal           Decimal      @db.Decimal(14, 2)
+  origenNoEspecificado Boolean      @default(false)
+  creadaEn             DateTime     @default(now())
+
+  fincaId   String
+  finca     Finca   @relation(fields: [fincaId], references: [id])
+  creadaPor String
+  usuario   Usuario @relation(fields: [creadaPor], references: [id])
+
+  lotes VentaLote[]
+}
+
+model VentaLote {
+  ventaId String
+  venta   Venta  @relation(fields: [ventaId], references: [id])
+  loteId  String
+  lote    Lote   @relation(fields: [loteId], references: [id])
+
+  @@id([ventaId, loteId])
+}
