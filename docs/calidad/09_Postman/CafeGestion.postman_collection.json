@@ -530,10 +530,14 @@
             "type": "text/javascript",
             "exec": [
               "pm.test(\"Responde 200 OK\", () => pm.response.to.have.status(200));",
-              "pm.test(\"La cosecha pasa a CONFIRMADA con fecha de confirmación\", () => {",
-              "  const c = pm.response.json();",
-              "  pm.expect(c.estado).to.eql(\"CONFIRMADA\");",
-              "  pm.expect(c.confirmadaEn).to.be.a(\"string\");",
+              "const r = pm.response.json();",
+              "pm.test(\"Confirma la cosecha indicada\", () => {",
+              "  pm.expect(r.estado).to.eql(\"CONFIRMADA\");",
+              "  pm.expect(r.cosechaId).to.eql(pm.environment.get(\"cosechaId\"));",
+              "});",
+              "pm.test(\"Devuelve el inventario actualizado: 100 kg de pergamino seco\", () => {",
+              "  pm.expect(r.inventario.tipoProducto).to.eql(\"PERGAMINO_SECO\");",
+              "  pm.expect(Number(r.inventario.cantidadKg)).to.eql(100);",
               "});"
             ]
           }
