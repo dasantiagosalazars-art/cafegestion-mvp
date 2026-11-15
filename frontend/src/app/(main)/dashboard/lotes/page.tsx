@@ -20,6 +20,8 @@ import { useApiData } from "@/lib/use-api-data";
 export default function LotesPage() {
   const { datos, cargando, error, recargar } = useApiData<Lote[]>("/lotes");
   const [enviando, setEnviando] = useState(false);
+  // Al cambiar la clave el formulario se remonta y todos sus campos quedan vacíos.
+  const [formKey, setFormKey] = useState(0);
   const form = useForm<LoteValues>({
     resolver: zodResolver(loteSchema),
     defaultValues: { nombre: "", tipoCultivo: "Café" },
@@ -31,6 +33,7 @@ export default function LotesPage() {
       await api<Lote>("/lotes", { method: "POST", body: valores });
       toast.success("Lote registrado.");
       form.reset({ nombre: "", tipoCultivo: "Café" });
+      setFormKey((k) => k + 1);
       await recargar();
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : "No se pudo registrar el lote.");
@@ -50,7 +53,7 @@ export default function LotesPage() {
           <CardTitle className="text-base">Registrar lote</CardTitle>
         </CardHeader>
         <CardContent>
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-4 sm:items-start">
+          <form key={formKey} noValidate onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-4 sm:items-start">
             <FieldGroup className="contents">
               <Field className="gap-1.5" data-invalid={Boolean(err.nombre)}>
                 <FieldLabel htmlFor="lote-nombre">Nombre del lote</FieldLabel>

@@ -24,6 +24,8 @@ export default function VentasPage() {
   const lotes = useApiData<Lote[]>("/lotes");
   const [enviando, setEnviando] = useState(false);
   const [loteIds, setLoteIds] = useState<string[]>([]);
+  // Al cambiar la clave el formulario se remonta y todos sus campos quedan vacíos.
+  const [formKey, setFormKey] = useState(0);
 
   const form = useForm<VentaValues>({
     resolver: zodResolver(ventaSchema),
@@ -41,6 +43,7 @@ export default function VentasPage() {
       toast.success("Venta registrada e inventario descontado.");
       form.reset({ comprador: "", tipoProducto: valores.tipoProducto });
       setLoteIds([]);
+      setFormKey((k) => k + 1);
       await ventas.recargar();
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : "No se pudo registrar la venta.");
@@ -60,7 +63,7 @@ export default function VentasPage() {
           <CardTitle className="text-base">Registrar venta</CardTitle>
         </CardHeader>
         <CardContent>
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form key={formKey} noValidate onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-4 sm:items-start">
               <FieldGroup className="contents">
                 <Field className="gap-1.5" data-invalid={Boolean(err.comprador)}>

@@ -23,6 +23,8 @@ export default function CosechasPage() {
   const cosechas = useApiData<Cosecha[]>("/cosechas");
   const lotes = useApiData<Lote[]>("/lotes");
   const [enviando, setEnviando] = useState(false);
+  // Al cambiar la clave el formulario se remonta y todos sus campos quedan vacíos.
+  const [formKey, setFormKey] = useState(0);
   const [confirmando, setConfirmando] = useState<string | null>(null);
 
   const form = useForm<CosechaValues>({
@@ -36,6 +38,7 @@ export default function CosechasPage() {
       await api<Cosecha>("/cosechas", { method: "POST", body: valores });
       toast.success("Cosecha registrada. Confírmela para sumarla al inventario.");
       form.reset({ loteId: "", fecha: valores.fecha, tipoProducto: valores.tipoProducto });
+      setFormKey((k) => k + 1);
       await cosechas.recargar();
     } catch (e) {
       toast.error(e instanceof ApiError ? e.message : "No se pudo registrar la cosecha.");
@@ -70,7 +73,7 @@ export default function CosechasPage() {
         </CardHeader>
         <CardContent>
           {sinLotes && <p className="text-muted-foreground mb-4 text-sm">Primero registre al menos un lote en la sección Lotes.</p>}
-          <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-5 sm:items-start">
+          <form key={formKey} noValidate onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4 sm:grid-cols-5 sm:items-start">
             <FieldGroup className="contents">
               <Field className="gap-1.5" data-invalid={Boolean(err.loteId)}>
                 <FieldLabel htmlFor="cos-lote">Lote</FieldLabel>
