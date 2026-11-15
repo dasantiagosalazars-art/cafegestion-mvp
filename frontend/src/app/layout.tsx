@@ -15,18 +15,8 @@ import "./globals.css";
 export const metadata: Metadata = {
   metadataBase: new URL(APP_CONFIG.url),
   applicationName: APP_CONFIG.name,
-  authors: [{ name: "Arham Khan", url: "https://github.com/arhamkhnz" }],
   title: APP_CONFIG.meta.title,
   description: APP_CONFIG.meta.description,
-  openGraph: {
-    type: "website",
-    siteName: APP_CONFIG.name,
-    locale: "en_US",
-  },
-  twitter: {
-    card: "summary_large_image",
-    creator: "@arhamkhnz",
-  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
@@ -34,7 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     PREFERENCE_DEFAULTS;
   return (
     <html
-      lang="en"
+      lang="es"
       data-theme-mode={theme_mode}
       data-theme-preset={theme_preset}
       data-content-layout={content_layout}
@@ -45,19 +35,6 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
       suppressHydrationWarning
     >
       <head>
-        {/* Google tag (gtag.js) */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSJE619NQN" />
-        <script
-          // biome-ignore lint/security/noDangerouslySetInnerHtml: static Google tag initialization supplied by the site owner
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-JSJE619NQN');
-            `,
-          }}
-        />
         {/* Applies theme and layout preferences on load to avoid flicker and unnecessary server rerenders. */}
         <ThemeBootScript />
       </head>

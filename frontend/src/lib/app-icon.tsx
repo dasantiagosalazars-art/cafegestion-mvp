@@ -18,7 +18,7 @@ export function createAppIcon(size: number) {
         color: "white",
       }}
     >
-      <AppLogo viewBox="72 96 356 308" width={logoWidth} height={logoHeight} />
+      <AppLogo width={logoWidth} height={logoHeight} />
     </div>,
     { width: size, height: size },
   );

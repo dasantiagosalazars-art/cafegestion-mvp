@@ -303,3 +303,67 @@ html:has([data-landing-page]) {
     -webkit-print-color-adjust: exact;
   }
 }
+
+/* ==========================================================================
+   Marca CafeGestión (se sobrescribe la paleta de la plantilla Studio Admin)
+   Verde #2D5A3D · Crema #F4EDE0 · Café #6B4423 · Fuente Geist
+   ========================================================================== */
+:root {
+  --background: #f4ede0;
+  --foreground: #2a2118;
+  --card: #fbf7ef;
+  --card-foreground: #2a2118;
+  --popover: #fbf7ef;
+  --popover-foreground: #2a2118;
+  --primary: #2d5a3d;
+  --primary-foreground: #f4ede0;
+  --secondary: #e8dcc4;
+  --secondary-foreground: #4a3320;
+  --muted: #ebe2d0;
+  --muted-foreground: #6e6254;
+  --accent: #e8dcc4;
+  --accent-foreground: #4a3320;
+  --border: #d9ccb2;
+  --input: #d9ccb2;
+  --ring: #2d5a3d;
+  --chart-1: #2d5a3d;
+  --chart-2: #6b4423;
+  --chart-3: #8aa88f;
+  --chart-4: #b08968;
+  --chart-5: #4a3320;
+  --sidebar: #2d5a3d;
+  --sidebar-foreground: #f4ede0;
+  --sidebar-primary: #6b4423;
+  --sidebar-primary-foreground: #f4ede0;
+  --sidebar-accent: #3a6d4c;
+  --sidebar-accent-foreground: #f4ede0;
+  --sidebar-border: #3a6d4c;
+  --sidebar-ring: #f4ede0;
+}
+
+.dark {
+  --background: #17120d;
+  --foreground: #f4ede0;
+  --card: #231b13;
+  --card-foreground: #f4ede0;
+  --popover: #231b13;
+  --popover-foreground: #f4ede0;
+  --primary: #5f9a73;
+  --primary-foreground: #10201a;
+  --secondary: #33281c;
+  --secondary-foreground: #f4ede0;
+  --muted: #33281c;
+  --muted-foreground: #b9ab97;
+  --accent: #33281c;
+  --accent-foreground: #f4ede0;
+  --border: #4a3a29;
+  --input: #4a3a29;
+  --ring: #5f9a73;
+  --sidebar: #1d3a29;
+  --sidebar-foreground: #f4ede0;
+  --sidebar-primary: #b08968;
+  --sidebar-primary-foreground: #17120d;
+  --sidebar-accent: #2d5a3d;
+  --sidebar-accent-foreground: #f4ede0;
+  --sidebar-border: #2d5a3d;
+}
