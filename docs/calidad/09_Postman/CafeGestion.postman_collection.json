@@ -1,0 +1,806 @@
+{
+  "info": {
+    "_postman_id": "cbcd529d-d113-4f10-8340-db2b5d1bc93c",
+    "name": "CafeGestión API",
+    "description": "Pruebas de API del MVP CafeGestión. Ejecutar toda la colección en orden (Collection Runner). Cada corrida crea su propio usuario y finca.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "PM-01 Registrar finca y usuario (SWR-AUTH-001)",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const sufijo = Date.now();",
+              "pm.environment.set(\"email\", \"postman_\" + sufijo + \"@prueba.com\");",
+              "pm.environment.set(\"password\", \"Pw\" + sufijo + \"x\");"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 201 Created\", () => pm.response.to.have.status(201));",
+              "const cuerpo = pm.response.json();",
+              "pm.test(\"Devuelve accessToken y usuario con rol PRODUCTOR\", () => {",
+              "  pm.expect(cuerpo.accessToken).to.be.a(\"string\").and.not.empty;",
+              "  pm.expect(cuerpo.usuario.rol).to.eql(\"PRODUCTOR\");",
+              "});",
+              "pm.test(\"No expone la contraseña ni su hash (SWR-SEC-002)\", () => {",
+              "  const texto = pm.response.text();",
+              "  pm.expect(texto).to.not.include(\"passwordHash\");",
+              "  pm.expect(texto).to.not.include(pm.environment.get(\"password\"));",
+              "});",
+              "pm.environment.set(\"token\", cuerpo.accessToken);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Usuario Postman\",\n  \"nombreFinca\": \"Finca Postman\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "PM-02 Registrar con correo repetido (SWR-AUTH-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 409 Conflict\", () => pm.response.to.have.status(409));",
+              "pm.test(\"Mensaje: el correo ya está registrado\", () => {",
+              "  pm.expect(pm.response.json().message).to.eql(\"El correo ya está registrado.\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Otro\",\n  \"nombreFinca\": \"Otra finca\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "PM-03 Login correcto (SWR-AUTH-002)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Entrega un JWT de tres partes\", () => {",
+              "  pm.expect(pm.response.json().accessToken.split(\".\")).to.have.lengthOf(3);",
+              "});",
+              "pm.test(\"Responde en menos de 2000 ms\", () => pm.expect(pm.response.responseTime).to.be.below(2000));",
+              "pm.environment.set(\"token\", pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "PM-04 Login con contraseña incorrecta (SWR-AUTH-003)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 401 Unauthorized\", () => pm.response.to.have.status(401));",
+              "pm.test(\"Mensaje genérico que no revela cuál dato falló\", () => {",
+              "  pm.expect(pm.response.json().message).to.eql(\"Correo o contraseña incorrectos.\");",
+              "});",
+              "pm.test(\"No devuelve token\", () => pm.expect(pm.response.json()).to.not.have.property(\"accessToken\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"contrasena-equivocada\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "PM-05 Consultar perfil sin token (SWR-SEC-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 401 sin sesión\", () => pm.response.to.have.status(401));",
+              "pm.test(\"Pide iniciar sesión\", () => pm.expect(pm.response.json().message).to.eql(\"Debe iniciar sesión para continuar.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "me"
+          ]
+        },
+        "auth": {
+          "type": "noauth"
+        }
+      }
+    },
+    {
+      "name": "PM-06 Registrar lote válido (SWR-LOTE-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 201 Created\", () => pm.response.to.have.status(201));",
+              "const lote = pm.response.json();",
+              "pm.test(\"El lote guarda nombre, área y cultivo\", () => {",
+              "  pm.expect(lote.nombre).to.eql(\"El Mirador\");",
+              "  pm.expect(Number(lote.areaHa)).to.eql(2.5);",
+              "  pm.expect(lote.tipoCultivo).to.eql(\"Café\");",
+              "});",
+              "pm.test(\"El lote queda ligado a la finca del usuario\", () => pm.expect(lote.fincaId).to.be.a(\"string\"));",
+              "pm.environment.set(\"loteId\", lote.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/lotes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lotes"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"El Mirador\",\n  \"areaHa\": 2.5,\n  \"tipoCultivo\": \"Café\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-07 Lote con nombre repetido, sin distinguir mayúsculas (SWR-LOTE-002)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 409 Conflict\", () => pm.response.to.have.status(409));",
+              "pm.test(\"Mensaje de lote duplicado\", () => {",
+              "  pm.expect(pm.response.json().message).to.eql(\"Ya existe un lote con ese nombre en la finca.\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/lotes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lotes"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"  el mirador \",\n  \"areaHa\": 1,\n  \"tipoCultivo\": \"Café\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-08 Lote con área 0 (SWR-LOTE-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Indica que el área debe ser mayor que 0\", () => {",
+              "  const mensajes = [].concat(pm.response.json().message).join(\" \");",
+              "  pm.expect(mensajes).to.include(\"mayor que 0 hectáreas\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/lotes",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "lotes"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Lote Cero\",\n  \"areaHa\": 0,\n  \"tipoCultivo\": \"Café\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-09 Registrar cosecha 100 kg (SWR-COS-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 201 Created\", () => pm.response.to.have.status(201));",
+              "const c = pm.response.json();",
+              "pm.test(\"La cosecha nace en estado REGISTRADA\", () => pm.expect(c.estado).to.eql(\"REGISTRADA\"));",
+              "pm.test(\"Guarda cantidad y producto\", () => {",
+              "  pm.expect(Number(c.cantidadKg)).to.eql(100);",
+              "  pm.expect(c.tipoProducto).to.eql(\"PERGAMINO_SECO\");",
+              "});",
+              "pm.environment.set(\"cosechaId\", c.id);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/cosechas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "cosechas"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"loteId\": \"{{loteId}}\",\n  \"fecha\": \"2026-11-15\",\n  \"cantidadKg\": 100,\n  \"tipoProducto\": \"PERGAMINO_SECO\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-10 Inventario antes de confirmar (SWR-INV-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 200 OK\", () => pm.response.to.have.status(200));",
+              "const filas = pm.response.json();",
+              "pm.test(\"Lista los 3 tipos de producto\", () => pm.expect(filas).to.have.lengthOf(3));",
+              "pm.test(\"Una cosecha sin confirmar NO suma al inventario\", () => {",
+              "  const seco = filas.find(f => f.tipoProducto === \"PERGAMINO_SECO\");",
+              "  pm.expect(Number(seco.cantidadKg)).to.eql(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventario",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventario"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-11 Confirmar cosecha (SWR-COS-002)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"La cosecha pasa a CONFIRMADA con fecha de confirmación\", () => {",
+              "  const c = pm.response.json();",
+              "  pm.expect(c.estado).to.eql(\"CONFIRMADA\");",
+              "  pm.expect(c.confirmadaEn).to.be.a(\"string\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/cosechas/{{cosechaId}}/confirmar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "cosechas",
+            "{{cosechaId}}",
+            "confirmar"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-12 Confirmar la misma cosecha otra vez (SWR-COS-002)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 409 Conflict\", () => pm.response.to.have.status(409));",
+              "pm.test(\"No permite doble confirmación\", () => pm.expect(pm.response.json().message).to.eql(\"La cosecha ya fue confirmada.\"));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/cosechas/{{cosechaId}}/confirmar",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "cosechas",
+            "{{cosechaId}}",
+            "confirmar"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-13 Inventario después de confirmar (SWR-INV-001)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Pergamino seco suma exactamente 100 kg (sin duplicar por la doble confirmación)\", () => {",
+              "  const seco = pm.response.json().find(f => f.tipoProducto === \"PERGAMINO_SECO\");",
+              "  pm.expect(Number(seco.cantidadKg)).to.eql(100);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventario",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventario"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-14 Venta mayor al inventario (SWR-INV-003)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 400 Bad Request\", () => pm.response.to.have.status(400));",
+              "pm.test(\"Indica inventario insuficiente con las cantidades\", () => {",
+              "  pm.expect(pm.response.json().message).to.eql(\"Inventario insuficiente: disponible 100 kg, solicitado 150 kg.\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ventas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ventas"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"comprador\": \"Café del Sur\",\n  \"tipoProducto\": \"PERGAMINO_SECO\",\n  \"cantidadKg\": 150,\n  \"valorTotal\": 3000000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-15 Venta válida con lote de origen (SWR-COM-001, SWR-COM-002)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 201 Created\", () => pm.response.to.have.status(201));",
+              "const v = pm.response.json();",
+              "pm.test(\"La venta registra comprador, cantidad y valor\", () => {",
+              "  pm.expect(v.comprador).to.eql(\"Café del Sur\");",
+              "  pm.expect(Number(v.cantidadKg)).to.eql(40);",
+              "  pm.expect(Number(v.valorTotal)).to.eql(800000);",
+              "});",
+              "pm.test(\"Con lote indicado, el origen queda especificado\", () => {",
+              "  pm.expect(v.origenNoEspecificado).to.eql(false);",
+              "  pm.expect(v.lotes).to.have.lengthOf(1);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/ventas",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "ventas"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"comprador\": \"Café del Sur\",\n  \"tipoProducto\": \"PERGAMINO_SECO\",\n  \"cantidadKg\": 40,\n  \"valorTotal\": 800000,\n  \"loteIds\": [\n    \"{{loteId}}\"\n  ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "PM-16 Inventario después de vender (SWR-INV-002)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Responde 200 OK\", () => pm.response.to.have.status(200));",
+              "pm.test(\"El inventario baja de 100 a 60 kg (100 - 40)\", () => {",
+              "  const seco = pm.response.json().find(f => f.tipoProducto === \"PERGAMINO_SECO\");",
+              "  pm.expect(Number(seco.cantidadKg)).to.eql(60);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/inventario",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "inventario"
+          ]
+        },
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

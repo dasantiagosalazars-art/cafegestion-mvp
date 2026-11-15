@@ -12,10 +12,15 @@
     "check": "biome check",
     "check:fix": "biome check --write",
     "prepare": "husky",
-    "generate:presets": "ts-node -P tsconfig.scripts.json src/scripts/generate-theme-presets.ts"
+    "generate:presets": "ts-node -P tsconfig.scripts.json src/scripts/generate-theme-presets.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
-    "*.{js,ts,jsx,tsx}": ["biome check --write --no-errors-on-unmatched"]
+    "*.{js,ts,jsx,tsx}": [
+      "biome check --write --no-errors-on-unmatched"
+    ]
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

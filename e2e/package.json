@@ -1,0 +1,8 @@
+{
+  "name": "cafegestion-e2e",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "report": "playwright show-report"
+  }
+}
