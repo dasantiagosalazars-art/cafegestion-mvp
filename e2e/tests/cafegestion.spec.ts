@@ -13,7 +13,7 @@ test.describe("CafeGestión E2E", () => {
     await expect(resumen.getByText("0 kg")).toHaveCount(3);
   });
 
-  test("E2E-02 seguridad: sin sesión, una ruta privada redirige al login (SWR-SEC-001)", async ({ page }) => {
+  test("E2E-02 seguridad: sin sesión, una ruta privada redirige al login (SWR-AUTH-002)", async ({ page }) => {
     await page.goto("/dashboard/ventas");
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole("heading", { name: "Iniciar sesión" })).toBeVisible();
@@ -32,7 +32,7 @@ test.describe("CafeGestión E2E", () => {
     await expect(page).toHaveURL(/\/login$/);
   });
 
-  test("E2E-04 FLUJO PRINCIPAL: lote, cosecha confirmada, inventario y venta (SWR-LOTE-001, COS-001, COS-002, INV-001, COM-001, INV-002)", async ({ page }) => {
+  test("E2E-04 FLUJO PRINCIPAL: lote, cosecha confirmada, inventario y venta (SWR-LOTE-001, COS-001, INV-001, COM-001, INV-002)", async ({ page }) => {
     const cuenta = cuentaNueva();
     await registrarPorUi(page, cuenta);
 

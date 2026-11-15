@@ -221,7 +221,7 @@
       }
     },
     {
-      "name": "PM-05 Consultar perfil sin token (SWR-SEC-001)",
+      "name": "PM-05 Consultar perfil sin token (SWR-AUTH-002)",
       "event": [
         {
           "listen": "test",
@@ -522,7 +522,7 @@
       }
     },
     {
-      "name": "PM-11 Confirmar cosecha (SWR-COS-002)",
+      "name": "PM-11 Confirmar cosecha (SWR-INV-001)",
       "event": [
         {
           "listen": "test",
@@ -566,7 +566,7 @@
       }
     },
     {
-      "name": "PM-12 Confirmar la misma cosecha otra vez (SWR-COS-002)",
+      "name": "PM-12 Confirmar la misma cosecha otra vez (SWR-INV-001)",
       "event": [
         {
           "listen": "test",

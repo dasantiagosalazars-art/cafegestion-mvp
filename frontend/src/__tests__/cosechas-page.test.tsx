@@ -28,7 +28,7 @@ function simularApi() {
   }) as unknown as typeof api);
 }
 
-describe("Pantalla de cosechas (SWR-COS-001, SWR-COS-002)", () => {
+describe("Pantalla de cosechas (SWR-COS-001, SWR-INV-001)", () => {
   it("RTL-10: el botón Confirmar aparece solo en las cosechas REGISTRADAS", async () => {
     simularApi();
     render(<CosechasPage />);
